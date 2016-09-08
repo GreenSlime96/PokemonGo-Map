@@ -1070,6 +1070,8 @@ function pokemonLabel (name, rarity, types, disappearDate, id, latitude, longitu
     typesDisplay += getTypeSpan(type)
   })
 
+  console.log(disappearDate);
+
   var contentstring = `
     <div>
       <b>${name}</b>
