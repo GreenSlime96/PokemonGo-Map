@@ -1070,7 +1070,7 @@ function pokemonLabel (name, rarity, types, disappearDate, id, latitude, longitu
     typesDisplay += getTypeSpan(type)
   })
 
-  console.log(disappearDate);
+  console.log(disappearDate.getHours());
 
   var contentstring = `
     <div>
