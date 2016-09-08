@@ -1071,8 +1071,6 @@ function pokemonLabel (name, rarity, types, disappearTime, id, latitude, longitu
     typesDisplay += getTypeSpan(type)
   })
 
-  console.log(disappearDate.getHours());
-
   var contentstring = `
     <div>
       <b>${name}</b>
@@ -1316,6 +1314,7 @@ function setupPokemonMarker (item, skipNotification, isBounceDisabled) {
 
   var pokemonData = idToPokemon[item['pokemon_id']]
 
+  // load data from JSON instead of needing it from server
   item['pokemon_name'] = pokemonData['name']
   item['pokemon_rarity'] = pokemonData['rarity']
   item['pokemon_types'] = pokemonData['types']
