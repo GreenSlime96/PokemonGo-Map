@@ -1041,17 +1041,9 @@ function createSearchMarker () {
   return searchMarker
 }
 
-var searchControlURI = 'search_control'
-function searchControl (action) {
-  $.post(searchControlURI + '?action=' + encodeURIComponent(action))
-}
-function updateSearchStatus () {
-  $.getJSON(searchControlURI).then(function (data) {
-    $('#search-switch').prop('checked', data.status)
-  })
-}
-
 function initSidebar () {
+  Store.set('showSpawnpoints', false)
+  
   $('#gyms-switch').prop('checked', Store.get('showGyms'))
   $('#pokemon-switch').prop('checked', Store.get('showPokemon'))
   $('#pokestops-switch').prop('checked', Store.get('showPokestops'))
@@ -1067,9 +1059,6 @@ function initSidebar () {
   $('#sound-switch').prop('checked', Store.get('playSound'))
   var searchBox = new google.maps.places.SearchBox(document.getElementById('next-location'))
   $('#next-location').css('background-color', $('#geoloc-switch').prop('checked') ? '#e0e0e0' : '#ffffff')
-
-  updateSearchStatus()
-  setInterval(updateSearchStatus, 5000)
 
   searchBox.addListener('places_changed', function () {
     var places = searchBox.getPlaces()
@@ -1222,18 +1211,16 @@ function gymLabel (teamName, teamId, gymPoints, latitude, longitude, lastScanned
   return str
 }
 
-function pokestopLabel (expireTime, latitude, longitude) {
+function pokestopLabel (expireDate, latitude, longitude) {
   var str
-  if (expireTime) {
-    var expireDate = new Date(expireTime)
-
+  if (expireDate) {
     str = `
       <div>
         <b>Lured Pokéstop</b>
       </div>
       <div>
         Lure expires at ${pad(expireDate.getHours())}:${pad(expireDate.getMinutes())}:${pad(expireDate.getSeconds())}
-        <span class='label-countdown' disappears-at='${expireTime}'>(00m00s)</span>
+        <span class='label-countdown' disappears-at='${expireDate}'>(00m00s)</span>
       </div>
       <div>
         Location: ${latitude.toFixed(6)}, ${longitude.toFixed(7)}
@@ -1353,6 +1340,12 @@ function setupPokemonMarker (item, skipNotification, isBounceDisabled) {
   var pokemonIndex = item['pokemon_id'] - 1
   var sprite = pokemonSprites[Store.get('pokemonIcons')] || pokemonSprites['highres']
   var icon = getGoogleSprite(pokemonIndex, sprite, iconSize)
+
+  var pokemonData = idToPokemon[item['pokemon_id']]
+
+  item['pokemon_name'] = pokemonData['name']
+  item['pokemon_rarity'] = pokemonData['rarity']
+  item['pokemon_types'] = pokemonData['types']
 
   var animationDisabled = false
   if (isBounceDisabled === true) {
@@ -1892,7 +1885,7 @@ function redrawPokemon (pokemonList) {
 
 var updateLabelDiffTime = function () {
   $('.label-countdown').each(function (index, element) {
-    var disappearsAt = new Date(parseInt(element.getAttribute('disappears-at')))
+    var disappearsAt = new Date(element.getAttribute('disappears-at'))
     var now = new Date()
 
     var difference = Math.abs(disappearsAt - now)
@@ -2283,7 +2276,7 @@ $(function () {
 
   // run interval timers to regularly update map and timediffs
   window.setInterval(updateLabelDiffTime, 1000)
-  window.setInterval(updateMap, 5000)
+  window.setInterval(updateMap, 20000)
   window.setInterval(function () {
     if (navigator.geolocation && (Store.get('geoLocate') || Store.get('followMyLocation'))) {
       navigator.geolocation.getCurrentPosition(function (position) {
@@ -2373,10 +2366,6 @@ $(function () {
   $('#lock-marker-switch').change(function () {
     Store.set('lockMarker', this.checked)
     searchMarker.setDraggable(!this.checked)
-  })
-
-  $('#search-switch').change(function () {
-    searchControl(this.checked ? 'on' : 'off')
   })
 
   $('#start-at-user-location-switch').change(function () {
