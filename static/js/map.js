@@ -1063,7 +1063,8 @@ function openMapDirections (lat, lng) { // eslint-disable-line no-unused-vars
   window.open(url, '_blank')
 }
 
-function pokemonLabel (name, rarity, types, disappearDate, id, latitude, longitude, encounterId) {
+function pokemonLabel (name, rarity, types, disappearTime, id, latitude, longitude, encounterId) {
+  var disappearDate = new Date(disappearTime)
   var rarityDisplay = rarity ? '(' + rarity + ')' : ''
   var typesDisplay = ''
   $.each(types, function (index, type) {
@@ -1085,7 +1086,7 @@ function pokemonLabel (name, rarity, types, disappearDate, id, latitude, longitu
     </div>
     <div>
       Disappears at ${pad(disappearDate.getHours())}:${pad(disappearDate.getMinutes())}:${pad(disappearDate.getSeconds())}
-      <span class='label-countdown' disappears-at='${disappearDate}'>(00m00s)</span>
+      <span class='label-countdown' disappears-at='${disappearTime}'>(00m00s)</span>
     </div>
     <div>
       Location: ${latitude.toFixed(6)}, ${longitude.toFixed(7)}
@@ -1182,16 +1183,17 @@ function gymLabel (teamName, teamId, gymPoints, latitude, longitude, lastScanned
   return str
 }
 
-function pokestopLabel (expireDate, latitude, longitude) {
+function pokestopLabel (expireTime, latitude, longitude) {
   var str
-  if (expireDate) {
+  if (expireTime) {
+    var expireDate = new Date(expireTime)
     str = `
       <div>
         <b>Lured Pokéstop</b>
       </div>
       <div>
         Lure expires at ${pad(expireDate.getHours())}:${pad(expireDate.getMinutes())}:${pad(expireDate.getSeconds())}
-        <span class='label-countdown' disappears-at='${expireDate}'>(00m00s)</span>
+        <span class='label-countdown' disappears-at='${expireTime}'>(00m00s)</span>
       </div>
       <div>
         Location: ${latitude.toFixed(6)}, ${longitude.toFixed(7)}
@@ -1856,7 +1858,7 @@ function redrawPokemon (pokemonList) {
 
 var updateLabelDiffTime = function () {
   $('.label-countdown').each(function (index, element) {
-    var disappearsAt = new Date(element.getAttribute('disappears-at'))
+    var disappearsAt = new Date(parseInt(element.getAttribute('disappears-at')))
     var now = new Date()
 
     var difference = Math.abs(disappearsAt - now)
