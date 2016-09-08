@@ -1020,24 +1020,6 @@ function createSearchMarker () {
 
   addListeners(searchMarker)
 
-  var oldLocation = null
-  google.maps.event.addListener(searchMarker, 'dragstart', function () {
-    oldLocation = searchMarker.getPosition()
-  })
-
-  google.maps.event.addListener(searchMarker, 'dragend', function () {
-    var newLocation = searchMarker.getPosition()
-    changeSearchLocation(newLocation.lat(), newLocation.lng())
-      .done(function () {
-        oldLocation = null
-      })
-      .fail(function () {
-        if (oldLocation) {
-          searchMarker.setPosition(oldLocation)
-        }
-      })
-  })
-
   return searchMarker
 }
 
@@ -1057,19 +1039,7 @@ function initSidebar () {
   $('#spawnpoints-switch').prop('checked', Store.get('showSpawnpoints'))
   $('#ranges-switch').prop('checked', Store.get('showRanges'))
   $('#sound-switch').prop('checked', Store.get('playSound'))
-  var searchBox = new google.maps.places.SearchBox(document.getElementById('next-location'))
   $('#next-location').css('background-color', $('#geoloc-switch').prop('checked') ? '#e0e0e0' : '#ffffff')
-
-  searchBox.addListener('places_changed', function () {
-    var places = searchBox.getPlaces()
-
-    if (places.length === 0) {
-      return
-    }
-
-    var loc = places[0].geometry.location
-    changeLocation(loc.lat(), loc.lng())
-  })
 
   var icons = $('#pokemon-icons')
   $.each(pokemonSprites, function (key, value) {
@@ -1093,8 +1063,7 @@ function openMapDirections (lat, lng) { // eslint-disable-line no-unused-vars
   window.open(url, '_blank')
 }
 
-function pokemonLabel (name, rarity, types, disappearTime, id, latitude, longitude, encounterId) {
-  var disappearDate = new Date(disappearTime)
+function pokemonLabel (name, rarity, types, disappearDate, id, latitude, longitude, encounterId) {
   var rarityDisplay = rarity ? '(' + rarity + ')' : ''
   var typesDisplay = ''
   $.each(types, function (index, type) {
@@ -1114,7 +1083,7 @@ function pokemonLabel (name, rarity, types, disappearTime, id, latitude, longitu
     </div>
     <div>
       Disappears at ${pad(disappearDate.getHours())}:${pad(disappearDate.getMinutes())}:${pad(disappearDate.getSeconds())}
-      <span class='label-countdown' disappears-at='${disappearTime}'>(00m00s)</span>
+      <span class='label-countdown' disappears-at='${disappearDate}'>(00m00s)</span>
     </div>
     <div>
       Location: ${latitude.toFixed(6)}, ${longitude.toFixed(7)}
@@ -2003,18 +1972,6 @@ function centerMapOnLocation () {
     clearInterval(animationInterval)
     currentLocation.style.backgroundPosition = '0px 0px'
   }
-}
-
-function changeLocation (lat, lng) {
-  var loc = new google.maps.LatLng(lat, lng)
-  changeSearchLocation(lat, lng).done(function () {
-    map.setCenter(loc)
-    searchMarker.setPosition(loc)
-  })
-}
-
-function changeSearchLocation (lat, lng) {
-  return $.post('next_loc?lat=' + lat + '&lon=' + lng, {})
 }
 
 function centerMap (lat, lng, zoom) {
